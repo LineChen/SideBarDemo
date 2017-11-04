@@ -28,21 +28,26 @@ public class MainActivity extends AppCompatActivity {
 
     MyAdapter adapter;
 
+    TextView tvBubble;
+    private LinearLayoutManager layoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initContact();
+        tvBubble = (TextView) findViewById(R.id.tv_bubble);
         recyclerView = (RecyclerView) findViewById(R.id.rv_contact);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
         adapter = new MyAdapter();
         recyclerView.setAdapter(adapter);
 
         sideBar = (SideBar) findViewById(R.id.side_bar);
-        sideBar.setSelectedTextColor(getResources().getColor(R.color.colorAccent));
         sideBar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
             @Override
             public void onTouchingLetterChanged(String s) {
+                tvBubble.setText(s);
                 // 得到匹配字母的位置
                 int position = adapter.getPositionForSection(s.charAt(0));
                 if (position != -1) {
@@ -50,7 +55,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        sideBar.setBubbleView(tvBubble);
 
+        //监听recyclerView滑动变化
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                if(firstVisibleItemPosition >= 0){
+                    sideBar.setCurrentLetter(contacts.get(firstVisibleItemPosition).getSection());
+                }
+            }
+        });
     }
 
     private void initContact(){
